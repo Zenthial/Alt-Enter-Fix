@@ -1,6 +1,3 @@
-#![allow(dead_code)]
-
-use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::io;
@@ -14,33 +11,30 @@ fn settings_update(version_folder: String) -> std::io::Result<()> {
     Ok(())
 }
 
-fn find_version_folder(path: String) -> String {
-    let entries = fs::read_dir(path).unwrap();
+fn find_version_folder(path: String) -> std::io::Result<String> {
+    let entries = fs::read_dir(path)?;
     let mut longest_length: Option<SystemTime> = None;
-    let mut longest_name: Option<OsString> = None;
     let mut longest_path: Option<PathBuf> = None;
     for entry in entries {
-        let entry = entry.unwrap();
+        let entry = entry?;
         if entry.file_name().into_string().unwrap().find("version").is_none() {
             continue;
         };
         let metadata = entry.metadata().unwrap();
         let length = metadata.modified().unwrap();
-        if longest_length.is_none() && longest_name.is_none() && longest_path.is_none() {
+        if longest_length.is_none() && longest_path.is_none() {
             longest_length = Some(length);
-            longest_name = Some(entry.file_name());
             longest_path = Some(entry.path());
         } else {
             if longest_length.unwrap().le(&length) {
                 longest_length = Some(length);
-                longest_name = Some(entry.file_name());
                 longest_path = Some(entry.path());
             }
         }
     }
     let path = longest_path.unwrap();
     let path_str = path.to_str().unwrap();
-    return path_str.to_string();
+    Ok(path_str.to_string())
 }
 
 fn check_path(path: String) -> Result<bool, io::Error> {
@@ -56,7 +50,7 @@ fn check_path(path: String) -> Result<bool, io::Error> {
 }
 
 fn run(path: String) {
-    let version_folder = find_version_folder(path);
+    let version_folder = find_version_folder(path).expect("Error finding version folder. Please send this to tomspell");
     let res = settings_update(version_folder);
     if let Err(e) = res {
         println!("Error writing ClientSettings: {}\nPlease send to tomspell", e);
