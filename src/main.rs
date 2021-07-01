@@ -5,6 +5,17 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 use read_input::prelude::*;
 
+fn delete_old_folder(path: String) -> std::io::Result<()> {
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        if entry.file_name() == "ClientSettings" {
+            fs::remove_dir(entry.path())?;
+            break;
+        }
+    }
+    Ok(())
+}
+
 fn settings_update(version_folder: String) -> std::io::Result<()> {
     fs::create_dir(version_folder.clone()+"/ClientSettings")?;
     fs::write(version_folder+"/ClientSettings/ClientAppSettings.json", "{\"FFlagHandleAltEnterFullscreenManually\":\"False\"}")?;
@@ -50,7 +61,12 @@ fn check_path(path: String) -> Result<bool, io::Error> {
 }
 
 fn run(path: String) {
-    let version_folder = find_version_folder(path).expect("Error finding version folder. Please send this to tomspell");
+    let version_folder = find_version_folder(path.clone()).expect("Error finding version folder. Please send this to tomspell");
+    let delete_old = delete_old_folder(path);
+    if let Err(e) = delete_old {
+        println!("Error deleted old folder: {}\nPlease send to tomspell", e);
+        return
+    }
     let res = settings_update(version_folder);
     if let Err(e) = res {
         println!("Error writing ClientSettings: {}\nPlease send to tomspell", e);
