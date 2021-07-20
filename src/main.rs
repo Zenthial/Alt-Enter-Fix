@@ -62,7 +62,7 @@ fn check_path(path: String) -> Result<bool, io::Error> {
 
 fn run(path: String) {
     let version_folder = find_version_folder(path.clone()).expect("Error finding version folder. Please send this to tomspell");
-    let delete_old = delete_old_folder(path);
+    let delete_old = delete_old_folder(version_folder.clone());
     if let Err(e) = delete_old {
         println!("Error deleted old folder: {}\nPlease send to tomspell", e);
         return
