@@ -9,7 +9,7 @@ fn delete_old_folder(path: String) -> std::io::Result<()> {
     for entry in fs::read_dir(path)? {
         let entry = entry?;
         if entry.file_name() == "ClientSettings" {
-            fs::remove_dir(entry.path())?;
+            fs::remove_dir_all(entry.path())?;
             break;
         }
     }
@@ -99,5 +99,5 @@ fn main() {
         let path: String = String::from_utf8_lossy(&fs::read("path.txt").unwrap()).parse().unwrap();
         run(path);
     }
-    input::<String>().msg("Press any key to close.").get();
+    input::<String>().msg("Press enter to close.").get();
 }
